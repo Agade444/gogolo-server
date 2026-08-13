@@ -2789,7 +2789,73 @@ app.get("/logout", (req, res) => {
 // =====================================================
 // SUNUCU
 // =====================================================
+app.post("/api/ai/generate", async (req, res) => {
 
+  try {
+
+    const apiKey =
+      process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({
+        ok: false,
+        error: "Gemini API anahtarı sunucuda tanımlı değil."
+      });
+    }
+
+    const contents =
+      req.body.contents;
+
+    const response =
+      await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": apiKey
+          },
+
+          body: JSON.stringify({
+            contents
+          })
+        }
+      );
+
+    const data =
+      await response.json();
+
+    if (!response.ok) {
+
+      return res
+        .status(response.status)
+        .json({
+          ok: false,
+          error:
+            data?.error?.message ||
+            "Gemini API hatası."
+        });
+    }
+
+    res.json({
+      ok: true,
+      data
+    });
+
+  }
+
+  catch(error) {
+
+    console.error(error);
+
+    res.status(500).json({
+      ok: false,
+      error: error.message
+    });
+  }
+
+});
 app.listen(PORT, () => {
 
   console.log("");
