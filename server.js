@@ -100,7 +100,21 @@ function normalizeUsers(list) {
     if (!Array.isArray(user.inbox)) {
       user.inbox = [];
     }
+        // =========================
+    // GO COIN
+    // =========================
 
+    if (
+      typeof user.goCoins !== "number" ||
+      !Number.isFinite(user.goCoins) ||
+      user.goCoins < 0
+    ) {
+      user.goCoins = 0;
+    }
+
+    if (!Array.isArray(user.coinHistory)) {
+      user.coinHistory = [];
+    }
     if (!Array.isArray(user.sent)) {
       user.sent = [];
     }
