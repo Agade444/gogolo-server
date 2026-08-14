@@ -142,10 +142,12 @@
       color: white;
       font-weight: bold;
       cursor: pointer;
+      transition: .2s;
     }
 
     .playButton:hover {
       background: #333;
+      transform: scale(1.02);
     }
 
     .soon {
@@ -154,7 +156,14 @@
       cursor: default;
     }
 
-    /* OYUN PENCERESİ */
+    .soon:hover {
+      background: #ddd;
+      transform: none;
+    }
+
+    /* ==============================
+       OYUN PENCERESİ
+    ============================== */
 
     #gameOverlay {
       display: none;
@@ -179,7 +188,7 @@
     }
 
     .gameWindowHeader {
-      height: 55px;
+      min-height: 55px;
       background: #181818;
       color: white;
       display: flex;
@@ -187,6 +196,10 @@
       justify-content: space-between;
       padding: 0 18px;
       font-weight: bold;
+    }
+
+    #gameTitle {
+      font-size: 17px;
     }
 
     .closeGame {
@@ -199,11 +212,15 @@
       font-weight: bold;
     }
 
+    .closeGame:hover {
+      background: #c92e23;
+    }
+
     #gameFrame {
       width: 100%;
       flex: 1;
       border: none;
-      background: white;
+      background: #111;
     }
 
     footer {
@@ -213,13 +230,40 @@
     }
 
     @media (max-width: 600px) {
+
+      header {
+        padding: 0 14px;
+      }
+
+      .logo {
+        font-size: 18px;
+      }
+
+      .back {
+        padding: 9px 13px;
+        font-size: 13px;
+      }
+
       .hero h1 {
         font-size: 34px;
       }
 
+      #gameOverlay {
+        padding: 5px;
+      }
+
       .gameWindow {
         width: 100%;
-        height: 95vh;
+        height: 96vh;
+        border-radius: 14px;
+      }
+
+      .gameWindowHeader {
+        padding: 0 10px;
+      }
+
+      .closeGame {
+        padding: 8px 10px;
       }
     }
   </style>
@@ -228,34 +272,76 @@
 <body>
 
 <header>
-  <div class="logo">🎮 Go Go Lo Store</div>
-  <a class="back" href="/">← Go Go Lo</a>
+  <div class="logo">
+    🎮 Go Go Lo Store
+  </div>
+
+  <a class="back" href="/">
+    ← Go Go Lo
+  </a>
 </header>
 
+
 <section class="hero">
-  <h1>Go Go Lo Store</h1>
-  <p>Oyunlarını keşfet ve Go Go Lo içinde oyna.</p>
+
+  <h1>
+    Go Go Lo Store
+  </h1>
+
+  <p>
+    Oyunlarını keşfet ve Go Go Lo içinde oyna.
+  </p>
+
 </section>
 
+
 <div class="searchArea">
+
   <input
     id="gameSearch"
     placeholder="Store'da oyun ara..."
     oninput="filterGames()"
   >
+
 </div>
+
 
 <div class="games" id="games">
 
-  <div class="gameCard" data-name="2048 bulmaca sayı">
-    <div class="cover">🔢</div>
+
+  <!-- ==========================
+       2048
+  =========================== -->
+
+  <div
+    class="gameCard"
+    data-name="2048 bulmaca sayı"
+  >
+
+    <div class="cover">
+      🔢
+    </div>
+
     <div class="gameInfo">
-      <h2>2048</h2>
-      <p>Sayıları birleştir ve 2048'e ulaş.</p>
+
+      <h2>
+        2048
+      </h2>
+
+      <p>
+        Sayıları birleştir ve 2048'e ulaş.
+      </p>
 
       <div class="tags">
-        <span class="tag">Bulmaca</span>
-        <span class="tag">Tek Oyuncu</span>
+
+        <span class="tag">
+          Bulmaca
+        </span>
+
+        <span class="tag">
+          Tek Oyuncu
+        </span>
+
       </div>
 
       <button
@@ -264,19 +350,45 @@
       >
         YAKINDA
       </button>
+
     </div>
+
   </div>
 
 
-  <div class="gameCard" data-name="go snake yılan klasik">
-    <div class="cover">🐍</div>
+  <!-- ==========================
+       GO SNAKE
+  =========================== -->
+
+  <div
+    class="gameCard"
+    data-name="go snake yılan klasik"
+  >
+
+    <div class="cover">
+      🐍
+    </div>
+
     <div class="gameInfo">
-      <h2>Go Snake</h2>
-      <p>Klasik yılan oyununu Go Go Lo tarzında oyna.</p>
+
+      <h2>
+        Go Snake
+      </h2>
+
+      <p>
+        Klasik yılan oyununu Go Go Lo tarzında oyna.
+      </p>
 
       <div class="tags">
-        <span class="tag">Arcade</span>
-        <span class="tag">Klasik</span>
+
+        <span class="tag">
+          Arcade
+        </span>
+
+        <span class="tag">
+          Klasik
+        </span>
+
       </div>
 
       <button
@@ -285,19 +397,45 @@
       >
         ▶ OYNA
       </button>
+
     </div>
+
   </div>
 
 
-  <div class="gameCard" data-name="asteroids uzay gemi">
-    <div class="cover">🚀</div>
+  <!-- ==========================
+       ASTEROIDS
+  =========================== -->
+
+  <div
+    class="gameCard"
+    data-name="asteroids uzay gemi"
+  >
+
+    <div class="cover">
+      🚀
+    </div>
+
     <div class="gameInfo">
-      <h2>Asteroids</h2>
-      <p>Uzay gemini kontrol et ve asteroidlerden kurtul.</p>
+
+      <h2>
+        Asteroids
+      </h2>
+
+      <p>
+        Uzay gemini kontrol et ve asteroidlerden kurtul.
+      </p>
 
       <div class="tags">
-        <span class="tag">Uzay</span>
-        <span class="tag">Arcade</span>
+
+        <span class="tag">
+          Uzay
+        </span>
+
+        <span class="tag">
+          Arcade
+        </span>
+
       </div>
 
       <button
@@ -306,19 +444,45 @@
       >
         YAKINDA
       </button>
+
     </div>
+
   </div>
 
 
-  <div class="gameCard" data-name="hextris tetris bulmaca">
-    <div class="cover">🧩</div>
+  <!-- ==========================
+       HEXTRIS
+  =========================== -->
+
+  <div
+    class="gameCard"
+    data-name="hextris tetris bulmaca"
+  >
+
+    <div class="cover">
+      🧩
+    </div>
+
     <div class="gameInfo">
-      <h2>Hextris</h2>
-      <p>Hızlı ve renkli bir altıgen bulmaca oyunu.</p>
+
+      <h2>
+        Hextris
+      </h2>
+
+      <p>
+        Hızlı ve renkli bir altıgen bulmaca oyunu.
+      </p>
 
       <div class="tags">
-        <span class="tag">Bulmaca</span>
-        <span class="tag">Hız</span>
+
+        <span class="tag">
+          Bulmaca
+        </span>
+
+        <span class="tag">
+          Hız
+        </span>
+
       </div>
 
       <button
@@ -327,19 +491,92 @@
       >
         YAKINDA
       </button>
+
     </div>
+
   </div>
 
 
-  <div class="gameCard" data-name="go racer yarış araba">
-    <div class="cover">🏎️</div>
+  <!-- ==========================
+       GO RACER
+  =========================== -->
+
+  <div
+    class="gameCard"
+    data-name="go racer yarış araba"
+  >
+
+    <div class="cover">
+      🏎️
+    </div>
+
     <div class="gameInfo">
-      <h2>Go Racer</h2>
-      <p>Go Go Lo'nun yarış bölümüne hazırlan.</p>
+
+      <h2>
+        Go Racer
+      </h2>
+
+      <p>
+        Trafiğin arasından sıyrıl, coinleri topla ve rekorunu kır.
+      </p>
 
       <div class="tags">
-        <span class="tag">Yarış</span>
-        <span class="tag">Hız</span>
+
+        <span class="tag">
+          Yarış
+        </span>
+
+        <span class="tag">
+          Hız
+        </span>
+
+      </div>
+
+      <button
+        class="playButton"
+        onclick="openGame('/games/go-racer.html', '🏎️ Go Racer')"
+      >
+        ▶ OYNA
+      </button>
+
+    </div>
+
+  </div>
+
+
+  <!-- ==========================
+       GHOST ESCAPE
+  =========================== -->
+
+  <div
+    class="gameCard"
+    data-name="ghost escape korku macera"
+  >
+
+    <div class="cover">
+      👻
+    </div>
+
+    <div class="gameInfo">
+
+      <h2>
+        Ghost Escape
+      </h2>
+
+      <p>
+        Karanlık bir dünyadan çıkış yolunu bul.
+      </p>
+
+      <div class="tags">
+
+        <span class="tag">
+          Korku
+        </span>
+
+        <span class="tag">
+          Macera
+        </span>
+
       </div>
 
       <button
@@ -348,34 +585,18 @@
       >
         YAKINDA
       </button>
+
     </div>
+
   </div>
 
-
-  <div class="gameCard" data-name="ghost escape korku">
-    <div class="cover">👻</div>
-    <div class="gameInfo">
-      <h2>Ghost Escape</h2>
-      <p>Karanlık bir dünyadan çıkış yolunu bul.</p>
-
-      <div class="tags">
-        <span class="tag">Korku</span>
-        <span class="tag">Macera</span>
-      </div>
-
-      <button
-        class="playButton soon"
-        disabled
-      >
-        YAKINDA
-      </button>
-    </div>
-  </div>
 
 </div>
 
 
-<!-- OYUN PENCERESİ -->
+<!-- ==============================
+     OYUN PENCERESİ
+================================ -->
 
 <div id="gameOverlay">
 
@@ -396,6 +617,7 @@
 
     </div>
 
+
     <iframe
       id="gameFrame"
       src=""
@@ -408,11 +630,15 @@
 
 
 <footer>
-  Go Go Lo Store • Oyunlar ekleniyor 🎮
+  Go Go Lo Store • 🎮 Oyunlar ekleniyor
 </footer>
 
 
 <script>
+
+/* ==============================
+   ARAMA
+================================ */
 
 function filterGames() {
 
@@ -423,10 +649,12 @@ function filterGames() {
       .toLowerCase()
       .trim();
 
+
   const cards =
     document.querySelectorAll(
       ".gameCard"
     );
+
 
   cards.forEach(card => {
 
@@ -434,68 +662,114 @@ function filterGames() {
       card.dataset.name
         .toLowerCase();
 
+
     card.style.display =
       name.includes(search)
         ? "block"
         : "none";
+
   });
+
 }
 
+
+/* ==============================
+   OYUN AÇ
+================================ */
 
 function openGame(
   url,
   title
 ) {
 
-  document
-    .getElementById("gameTitle")
-    .textContent =
-      title;
+  const overlay =
+    document.getElementById(
+      "gameOverlay"
+    );
 
-  document
-    .getElementById("gameFrame")
-    .src =
-      url;
+  const frame =
+    document.getElementById(
+      "gameFrame"
+    );
 
-  document
-    .getElementById("gameOverlay")
-    .style.display =
-      "flex";
+  const titleElement =
+    document.getElementById(
+      "gameTitle"
+    );
+
+
+  titleElement.textContent =
+    title;
+
+  frame.src =
+    url;
+
+  overlay.style.display =
+    "flex";
 
   document.body.style.overflow =
     "hidden";
+
 }
 
+
+/* ==============================
+   OYUN KAPAT
+================================ */
 
 function closeGame() {
 
-  document
-    .getElementById("gameFrame")
-    .src =
-      "";
+  const overlay =
+    document.getElementById(
+      "gameOverlay"
+    );
 
-  document
-    .getElementById("gameOverlay")
-    .style.display =
-      "none";
+  const frame =
+    document.getElementById(
+      "gameFrame"
+    );
+
+
+  /*
+    iframe'i boşaltıyoruz.
+    Böylece oyun arka planda
+    çalışmaya devam etmiyor.
+  */
+
+  frame.src =
+    "";
+
+  overlay.style.display =
+    "none";
 
   document.body.style.overflow =
     "";
+
 }
 
 
-/* ESC ile oyunu kapat */
+/* ==============================
+   ESC İLE KAPAT
+================================ */
 
 document.addEventListener(
   "keydown",
   event => {
 
-    if (
-      event.key === "Escape"
+    if(
+      event.key === "Escape" &&
+      document
+        .getElementById(
+          "gameOverlay"
+        )
+        .style
+        .display === "flex"
     ) {
 
       closeGame();
+
     }
+
   }
 );
 
