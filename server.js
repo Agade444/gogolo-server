@@ -1057,24 +1057,36 @@ Geri dön
   }
 
 
-  users.push({
+users.push({
 
-    username,
+  username,
 
-    password,
+  password,
 
-    address:
-      username + "@gogolo",
+  address:
+    username + "@gogolo",
 
-    inbox: [],
+  inbox: [],
 
-    sent: [],
+  sent: [],
 
-    aiChats: [],
+  aiChats: [],
 
-aiMemory: []
+  aiMemory: [],
 
-  });
+  goCoins: 100,
+
+  coinHistory: [
+    {
+      id: crypto.randomUUID(),
+      type: "bonus",
+      amount: 100,
+      reason: "Hoş geldin bonusu",
+      createdAt: new Date().toISOString()
+    }
+  ]
+
+});
 
 
   saveUsers();
