@@ -154,6 +154,58 @@
       cursor: default;
     }
 
+    /* OYUN PENCERESİ */
+
+    #gameOverlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.82);
+      z-index: 9999;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .gameWindow {
+      width: min(1000px, 96vw);
+      height: min(760px, 92vh);
+      background: #111;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .gameWindowHeader {
+      height: 55px;
+      background: #181818;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 18px;
+      font-weight: bold;
+    }
+
+    .closeGame {
+      border: none;
+      background: #ea4335;
+      color: white;
+      border-radius: 10px;
+      padding: 9px 14px;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    #gameFrame {
+      width: 100%;
+      flex: 1;
+      border: none;
+      background: white;
+    }
+
     footer {
       text-align: center;
       color: #888;
@@ -163,6 +215,11 @@
     @media (max-width: 600px) {
       .hero h1 {
         font-size: 34px;
+      }
+
+      .gameWindow {
+        width: 100%;
+        height: 95vh;
       }
     }
   </style>
@@ -177,7 +234,7 @@
 
 <section class="hero">
   <h1>Go Go Lo Store</h1>
-  <p>Oyunlarını keşfet, yükle ve Go Go Lo içinde oyna.</p>
+  <p>Oyunlarını keşfet ve Go Go Lo içinde oyna.</p>
 </section>
 
 <div class="searchArea">
@@ -223,10 +280,10 @@
       </div>
 
       <button
-        class="playButton soon"
-        disabled
+        class="playButton"
+        onclick="openGame('/games/snake.html', '🐍 Go Snake')"
       >
-        YAKINDA
+        ▶ OYNA
       </button>
     </div>
   </div>
@@ -317,8 +374,41 @@
 
 </div>
 
+
+<!-- OYUN PENCERESİ -->
+
+<div id="gameOverlay">
+
+  <div class="gameWindow">
+
+    <div class="gameWindowHeader">
+
+      <span id="gameTitle">
+        🎮 Oyun
+      </span>
+
+      <button
+        class="closeGame"
+        onclick="closeGame()"
+      >
+        ✕ Oyunu Kapat
+      </button>
+
+    </div>
+
+    <iframe
+      id="gameFrame"
+      src=""
+      allowfullscreen
+    ></iframe>
+
+  </div>
+
+</div>
+
+
 <footer>
-  Go Go Lo Store • Oyunlar yakında ekleniyor 🎮
+  Go Go Lo Store • Oyunlar ekleniyor 🎮
 </footer>
 
 
@@ -351,7 +441,65 @@ function filterGames() {
   });
 }
 
+
+function openGame(
+  url,
+  title
+) {
+
+  document
+    .getElementById("gameTitle")
+    .textContent =
+      title;
+
+  document
+    .getElementById("gameFrame")
+    .src =
+      url;
+
+  document
+    .getElementById("gameOverlay")
+    .style.display =
+      "flex";
+
+  document.body.style.overflow =
+    "hidden";
+}
+
+
+function closeGame() {
+
+  document
+    .getElementById("gameFrame")
+    .src =
+      "";
+
+  document
+    .getElementById("gameOverlay")
+    .style.display =
+      "none";
+
+  document.body.style.overflow =
+    "";
+}
+
+
+/* ESC ile oyunu kapat */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key === "Escape"
+    ) {
+
+      closeGame();
+    }
+  }
+);
+
 </script>
 
 </body>
-</html>>
+</html>
