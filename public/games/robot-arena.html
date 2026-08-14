@@ -1,0 +1,3650 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Robot Arena</title>
+
+<style>
+*{
+  box-sizing:border-box;
+}
+
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#060912;
+  font-family:Arial,sans-serif;
+  user-select:none;
+}
+
+canvas{
+  display:block;
+  width:100%;
+  height:100%;
+  cursor:none;
+}
+
+#hud{
+  position:fixed;
+  top:14px;
+  left:14px;
+  right:14px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  z-index:5;
+  pointer-events:none;
+}
+
+.hudGroup{
+  display:flex;
+  gap:8px;
+}
+
+.hudBox{
+  color:white;
+  background:rgba(5,10,22,.72);
+  border:1px solid rgba(100,220,255,.16);
+  box-shadow:
+    0 0 20px rgba(0,180,255,.08);
+  backdrop-filter:blur(8px);
+  padding:10px 14px;
+  border-radius:13px;
+  font-weight:bold;
+}
+
+#healthWrap{
+  position:fixed;
+  left:20px;
+  bottom:22px;
+  width:min(340px,48vw);
+  z-index:5;
+  pointer-events:none;
+}
+
+.label{
+  color:white;
+  font-size:12px;
+  font-weight:bold;
+  margin-bottom:6px;
+  text-shadow:0 1px 5px black;
+}
+
+.barOuter{
+  width:100%;
+  height:18px;
+  border-radius:20px;
+  padding:3px;
+  background:rgba(0,0,0,.7);
+  border:1px solid rgba(255,255,255,.15);
+}
+
+.barInner{
+  height:100%;
+  border-radius:20px;
+  transition:width .15s;
+}
+
+#healthBar{
+  background:linear-gradient(90deg,#ef4444,#fb7185);
+  width:100%;
+}
+
+#shieldBar{
+  background:linear-gradient(90deg,#2563eb,#67e8f9);
+  width:0%;
+}
+
+#shieldOuter{
+  margin-top:6px;
+}
+
+#dashIndicator{
+  margin-top:8px;
+  color:#8be9fd;
+  font-size:12px;
+  font-weight:bold;
+}
+
+#bossBarWrap{
+  position:fixed;
+  top:75px;
+  left:50%;
+  transform:translateX(-50%);
+  width:min(540px,70vw);
+  display:none;
+  z-index:5;
+  pointer-events:none;
+}
+
+#bossName{
+  color:white;
+  text-align:center;
+  font-weight:bold;
+  margin-bottom:6px;
+}
+
+#bossBar{
+  background:linear-gradient(90deg,#9333ea,#ff3d81);
+  width:100%;
+}
+
+#menu{
+  position:fixed;
+  inset:0;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:
+    radial-gradient(
+      circle at center,
+      rgba(14,32,65,.45),
+      rgba(2,4,10,.88)
+    );
+  z-index:20;
+}
+
+.panel{
+  width:min(540px,92%);
+  color:white;
+  text-align:center;
+  padding:38px;
+  border-radius:26px;
+  background:rgba(8,13,27,.96);
+  border:1px solid rgba(88,218,255,.18);
+  box-shadow:
+    0 25px 80px rgba(0,0,0,.7),
+    0 0 45px rgba(0,174,255,.08);
+}
+
+.logo{
+  font-size:74px;
+  margin-bottom:6px;
+}
+
+.panel h1{
+  margin:0 0 12px;
+  font-size:48px;
+}
+
+.panel p{
+  color:#b6c1d8;
+  line-height:1.6;
+}
+
+.controls{
+  margin:20px 0;
+  padding:14px;
+  border-radius:15px;
+  background:rgba(255,255,255,.04);
+  font-size:14px;
+  line-height:1.8;
+  color:#d6def0;
+}
+
+button{
+  border:0;
+  border-radius:13px;
+  padding:14px 22px;
+  margin:6px;
+  font-size:16px;
+  font-weight:bold;
+  cursor:pointer;
+  color:white;
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb,
+      #06b6d4
+    );
+}
+
+button:hover{
+  transform:scale(1.04);
+}
+
+.secondary{
+  background:#262b38;
+}
+
+#waveText{
+  position:fixed;
+  left:50%;
+  top:42%;
+  transform:translate(-50%,-50%);
+  color:white;
+  font-size:52px;
+  font-weight:900;
+  letter-spacing:4px;
+  opacity:0;
+  pointer-events:none;
+  z-index:15;
+  text-shadow:
+    0 0 14px #38bdf8,
+    0 0 35px #0284c7;
+}
+
+#pickupText{
+  position:fixed;
+  left:50%;
+  top:57%;
+  transform:translate(-50%,-50%);
+  color:#fde68a;
+  font-size:23px;
+  font-weight:bold;
+  opacity:0;
+  pointer-events:none;
+  z-index:16;
+  text-shadow:0 0 15px #f59e0b;
+}
+
+#comboText{
+  position:fixed;
+  right:25px;
+  top:75px;
+  color:#ffd166;
+  font-size:23px;
+  font-weight:bold;
+  opacity:0;
+  z-index:5;
+  pointer-events:none;
+  text-shadow:0 0 12px #f59e0b;
+}
+
+@media(max-width:700px){
+  .panel{
+    padding:25px;
+  }
+
+  .panel h1{
+    font-size:36px;
+  }
+
+  .logo{
+    font-size:55px;
+  }
+
+  .hudBox{
+    font-size:12px;
+    padding:8px 9px;
+  }
+
+  #waveText{
+    font-size:35px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<canvas id="game"></canvas>
+
+<div id="hud">
+
+  <div class="hudGroup">
+
+    <div class="hudBox">
+      🤖 WAVE
+      <span id="wave">1</span>
+    </div>
+
+    <div class="hudBox">
+      ⭐
+      <span id="score">0</span>
+    </div>
+
+  </div>
+
+  <div class="hudGroup">
+
+    <div class="hudBox">
+      💥
+      <span id="kills">0</span>
+    </div>
+
+    <div class="hudBox">
+      ⚡ x<span id="multiplier">1</span>
+    </div>
+
+  </div>
+
+</div>
+
+
+<div id="healthWrap">
+
+  <div class="label">
+    ❤️ ARMOR
+  </div>
+
+  <div class="barOuter">
+    <div
+      id="healthBar"
+      class="barInner"
+    ></div>
+  </div>
+
+  <div
+    id="shieldOuter"
+    class="barOuter"
+  >
+    <div
+      id="shieldBar"
+      class="barInner"
+    ></div>
+  </div>
+
+  <div id="dashIndicator">
+    ⚡ DASH HAZIR
+  </div>
+
+</div>
+
+
+<div id="bossBarWrap">
+
+  <div id="bossName">
+    ⚠️ TITAN
+  </div>
+
+  <div class="barOuter">
+    <div
+      id="bossBar"
+      class="barInner"
+    ></div>
+  </div>
+
+</div>
+
+
+<div id="waveText">
+  WAVE 1
+</div>
+
+<div id="pickupText"></div>
+
+<div id="comboText">
+  COMBO x2
+</div>
+
+
+<div id="menu">
+
+  <div class="panel">
+
+    <div class="logo">
+      🤖
+    </div>
+
+    <h1>
+      ROBOT ARENA
+    </h1>
+
+    <p>
+      Arena'ya gir.
+      Robot ordularını yok et,
+      güçlendirmeleri topla
+      ve mümkün olduğunca uzun dayan.
+    </p>
+
+    <div class="controls">
+
+      <b>WASD</b> — Hareket<br>
+      <b>FARE</b> — Nişan<br>
+      <b>SOL TIK</b> — Ateş<br>
+      <b>SHIFT</b> — Dash<br>
+      <b>R</b> — Hızlı yeniden başlat
+
+    </div>
+
+    <button onclick="startGame()">
+      ▶ ARENAYA GİR
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+
+/* ========================================
+   CANVAS
+======================================== */
+
+const canvas =
+  document.getElementById("game");
+
+const ctx =
+  canvas.getContext("2d");
+
+let W = 0;
+let H = 0;
+
+let DPR = 1;
+
+
+function resize(){
+
+  DPR =
+    Math.min(
+      window.devicePixelRatio || 1,
+      2
+    );
+
+  W =
+    window.innerWidth;
+
+  H =
+    window.innerHeight;
+
+  canvas.width =
+    W * DPR;
+
+  canvas.height =
+    H * DPR;
+
+  canvas.style.width =
+    W + "px";
+
+  canvas.style.height =
+    H + "px";
+
+  ctx.setTransform(
+    DPR,
+    0,
+    0,
+    DPR,
+    0,
+    0
+  );
+}
+
+
+window.addEventListener(
+  "resize",
+  resize
+);
+
+resize();
+
+
+/* ========================================
+   TEMEL OYUN
+======================================== */
+
+let running = false;
+
+let wave = 1;
+
+let score = 0;
+
+let kills = 0;
+
+let combo = 1;
+
+let comboTimer = 0;
+
+let waveDelay = 0;
+
+let screenShake = 0;
+
+let time = 0;
+
+let enemies = [];
+
+let bullets = [];
+
+let enemyBullets = [];
+
+let particles = [];
+
+let pickups = [];
+
+let shockwaves = [];
+
+let floatingTexts = [];
+
+let mouse = {
+
+  x: W/2,
+  y: H/2,
+  down:false
+
+};
+
+
+const keys = {};
+
+
+/* ========================================
+   PLAYER
+======================================== */
+
+const player = {
+
+  x:W/2,
+  y:H/2,
+
+  radius:20,
+
+  speed:4.2,
+
+  vx:0,
+  vy:0,
+
+  angle:0,
+
+  hp:100,
+  maxHp:100,
+
+  shield:0,
+  maxShield:100,
+
+  fireRate:10,
+  fireCooldown:0,
+
+  bulletSpeed:11,
+
+  damage:24,
+
+  dashCooldown:0,
+
+  dashMaxCooldown:90,
+
+  dashTimer:0,
+
+  dashPower:13,
+
+  invincible:0,
+
+  rapidFire:0,
+
+  tripleShot:0
+
+};
+
+
+/* ========================================
+   INPUT
+======================================== */
+
+document.addEventListener(
+  "keydown",
+  event=>{
+
+    keys[
+      event.key.toLowerCase()
+    ] = true;
+
+
+    if(
+      event.key === "Shift"
+    ){
+
+      tryDash();
+    }
+
+
+    if(
+      event.key.toLowerCase() === "r" &&
+      !running
+    ){
+
+      startGame();
+    }
+  }
+);
+
+
+document.addEventListener(
+  "keyup",
+  event=>{
+
+    keys[
+      event.key.toLowerCase()
+    ] = false;
+  }
+);
+
+
+canvas.addEventListener(
+  "mousemove",
+  event=>{
+
+    const rect =
+      canvas.getBoundingClientRect();
+
+    mouse.x =
+      event.clientX -
+      rect.left;
+
+    mouse.y =
+      event.clientY -
+      rect.top;
+  }
+);
+
+
+canvas.addEventListener(
+  "mousedown",
+  event=>{
+
+    if(event.button === 0){
+
+      mouse.down = true;
+    }
+  }
+);
+
+
+window.addEventListener(
+  "mouseup",
+  ()=>{
+
+    mouse.down = false;
+  }
+);
+
+
+/* ========================================
+   YARDIMCI
+======================================== */
+
+function rand(
+  min,
+  max
+){
+
+  return (
+    min +
+    Math.random()*
+    (max-min)
+  );
+}
+
+
+function clamp(
+  value,
+  min,
+  max
+){
+
+  return Math.max(
+    min,
+    Math.min(
+      max,
+      value
+    )
+  );
+}
+
+
+function distance(
+  a,
+  b
+){
+
+  return Math.hypot(
+    a.x-b.x,
+    a.y-b.y
+  );
+}
+
+
+function circleHit(
+  a,
+  b
+){
+
+  return (
+    distance(a,b) <
+    a.radius +
+    b.radius
+  );
+}
+
+
+/* ========================================
+   BAŞLAT
+======================================== */
+
+function startGame(){
+
+  running = true;
+
+  wave = 1;
+
+  score = 0;
+
+  kills = 0;
+
+  combo = 1;
+
+  comboTimer = 0;
+
+  screenShake = 0;
+
+  enemies = [];
+
+  bullets = [];
+
+  enemyBullets = [];
+
+  particles = [];
+
+  pickups = [];
+
+  shockwaves = [];
+
+  floatingTexts = [];
+
+
+  player.x =
+    W/2;
+
+  player.y =
+    H/2;
+
+  player.vx = 0;
+  player.vy = 0;
+
+  player.hp =
+    player.maxHp;
+
+  player.shield = 0;
+
+  player.fireCooldown = 0;
+
+  player.dashCooldown = 0;
+
+  player.dashTimer = 0;
+
+  player.invincible = 120;
+
+  player.rapidFire = 0;
+
+  player.tripleShot = 0;
+
+
+  document
+    .getElementById("menu")
+    .style.display =
+      "none";
+
+
+  spawnWave();
+
+  updateHUD();
+}
+
+
+/* ========================================
+   WAVE
+======================================== */
+
+function spawnWave(){
+
+  showWaveText(
+    wave % 5 === 0
+      ? "⚠️ BOSS WAVE " + wave
+      : "WAVE " + wave
+  );
+
+
+  if(
+    wave % 5 === 0
+  ){
+
+    spawnBoss();
+    return;
+  }
+
+
+  const count =
+    3 +
+    Math.floor(
+      wave * 1.5
+    );
+
+
+  for(
+    let i=0;
+    i<count;
+    i++
+  ){
+
+    const roll =
+      Math.random();
+
+
+    if(
+      wave >= 3 &&
+      roll > .72
+    ){
+
+      spawnEnemy(
+        "gunner"
+      );
+
+    }
+
+    else if(
+      wave >= 4 &&
+      roll > .52
+    ){
+
+      spawnEnemy(
+        "tank"
+      );
+
+    }
+
+    else{
+
+      spawnEnemy(
+        "hunter"
+      );
+    }
+  }
+}
+
+
+/* ========================================
+   DÜŞMAN ÜRET
+======================================== */
+
+function spawnEnemy(type){
+
+  const pos =
+    getSpawnPosition();
+
+
+  if(type === "hunter"){
+
+    enemies.push({
+
+      type,
+
+      x:pos.x,
+      y:pos.y,
+
+      radius:18,
+
+      hp:
+        45 +
+        wave*6,
+
+      maxHp:
+        45 +
+        wave*6,
+
+      speed:
+        1.5 +
+        wave*.035,
+
+      damage:15,
+
+      angle:0,
+
+      flash:0
+
+    });
+  }
+
+
+  if(type === "gunner"){
+
+    enemies.push({
+
+      type,
+
+      x:pos.x,
+      y:pos.y,
+
+      radius:20,
+
+      hp:
+        60 +
+        wave*7,
+
+      maxHp:
+        60 +
+        wave*7,
+
+      speed:1.05,
+
+      damage:12,
+
+      shootCooldown:
+        rand(
+          50,
+          100
+        ),
+
+      angle:0,
+
+      flash:0
+
+    });
+  }
+
+
+  if(type === "tank"){
+
+    enemies.push({
+
+      type,
+
+      x:pos.x,
+      y:pos.y,
+
+      radius:28,
+
+      hp:
+        145 +
+        wave*14,
+
+      maxHp:
+        145 +
+        wave*14,
+
+      speed:.72,
+
+      damage:25,
+
+      angle:0,
+
+      flash:0
+
+    });
+  }
+}
+
+
+function spawnBoss(){
+
+  const pos =
+    getSpawnPosition();
+
+
+  enemies.push({
+
+    type:"boss",
+
+    x:pos.x,
+    y:pos.y,
+
+    radius:52,
+
+    hp:
+      650 +
+      wave*85,
+
+    maxHp:
+      650 +
+      wave*85,
+
+    speed:.78,
+
+    damage:30,
+
+    shootCooldown:40,
+
+    burstCooldown:150,
+
+    angle:0,
+
+    flash:0
+
+  });
+
+
+  document
+    .getElementById(
+      "bossBarWrap"
+    )
+    .style.display =
+      "block";
+}
+
+
+function getSpawnPosition(){
+
+  const side =
+    Math.floor(
+      Math.random()*4
+    );
+
+
+  if(side === 0){
+
+    return{
+      x:rand(0,W),
+      y:-70
+    };
+  }
+
+
+  if(side === 1){
+
+    return{
+      x:W+70,
+      y:rand(0,H)
+    };
+  }
+
+
+  if(side === 2){
+
+    return{
+      x:rand(0,W),
+      y:H+70
+    };
+  }
+
+
+  return{
+    x:-70,
+    y:rand(0,H)
+  };
+}
+
+
+/* ========================================
+   PLAYER UPDATE
+======================================== */
+
+function updatePlayer(){
+
+  let moveX = 0;
+  let moveY = 0;
+
+
+  if(keys["w"]) moveY--;
+  if(keys["s"]) moveY++;
+  if(keys["a"]) moveX--;
+  if(keys["d"]) moveX++;
+
+
+  if(
+    moveX !== 0 ||
+    moveY !== 0
+  ){
+
+    const length =
+      Math.hypot(
+        moveX,
+        moveY
+      );
+
+    moveX /= length;
+    moveY /= length;
+  }
+
+
+  if(
+    player.dashTimer > 0
+  ){
+
+    player.dashTimer--;
+
+  }
+
+  else{
+
+    player.vx +=
+      (
+        moveX *
+        player.speed -
+        player.vx
+      ) *
+      .24;
+
+    player.vy +=
+      (
+        moveY *
+        player.speed -
+        player.vy
+      ) *
+      .24;
+  }
+
+
+  player.x +=
+    player.vx;
+
+  player.y +=
+    player.vy;
+
+
+  player.x =
+    clamp(
+      player.x,
+      28,
+      W-28
+    );
+
+  player.y =
+    clamp(
+      player.y,
+      28,
+      H-28
+    );
+
+
+  player.angle =
+    Math.atan2(
+      mouse.y-player.y,
+      mouse.x-player.x
+    );
+
+
+  if(player.fireCooldown > 0){
+
+    player.fireCooldown--;
+  }
+
+
+  if(player.dashCooldown > 0){
+
+    player.dashCooldown--;
+  }
+
+
+  if(player.invincible > 0){
+
+    player.invincible--;
+  }
+
+
+  if(player.rapidFire > 0){
+
+    player.rapidFire--;
+  }
+
+
+  if(player.tripleShot > 0){
+
+    player.tripleShot--;
+  }
+
+
+  if(mouse.down){
+
+    fireWeapon();
+  }
+
+
+  if(
+    Math.abs(player.vx) +
+    Math.abs(player.vy) >
+    1
+  ){
+
+    if(
+      Math.random() < .35
+    ){
+
+      particles.push({
+
+        x:
+          player.x -
+          Math.cos(
+            player.angle
+          )*16,
+
+        y:
+          player.y -
+          Math.sin(
+            player.angle
+          )*16,
+
+        vx:
+          rand(-.7,.7),
+
+        vy:
+          rand(-.7,.7),
+
+        life:20,
+
+        size:
+          rand(2,5),
+
+        color:"#22d3ee"
+      });
+    }
+  }
+}
+
+
+/* ========================================
+   DASH
+======================================== */
+
+function tryDash(){
+
+  if(
+    !running ||
+    player.dashCooldown > 0
+  ){
+
+    return;
+  }
+
+
+  let dx = 0;
+  let dy = 0;
+
+
+  if(keys["w"]) dy--;
+  if(keys["s"]) dy++;
+  if(keys["a"]) dx--;
+  if(keys["d"]) dx++;
+
+
+  if(
+    dx === 0 &&
+    dy === 0
+  ){
+
+    dx =
+      Math.cos(
+        player.angle
+      );
+
+    dy =
+      Math.sin(
+        player.angle
+      );
+
+  }
+
+  else{
+
+    const length =
+      Math.hypot(
+        dx,
+        dy
+      );
+
+    dx /= length;
+    dy /= length;
+  }
+
+
+  player.vx =
+    dx *
+    player.dashPower;
+
+  player.vy =
+    dy *
+    player.dashPower;
+
+  player.dashTimer = 10;
+
+  player.invincible = 18;
+
+  player.dashCooldown =
+    player.dashMaxCooldown;
+
+
+  createShockwave(
+    player.x,
+    player.y,
+    "#22d3ee"
+  );
+
+
+  for(
+    let i=0;
+    i<16;
+    i++
+  ){
+
+    particles.push({
+
+      x:player.x,
+      y:player.y,
+
+      vx:
+        rand(-5,5),
+
+      vy:
+        rand(-5,5),
+
+      life:25,
+
+      size:
+        rand(2,6),
+
+      color:"#22d3ee"
+    });
+  }
+}
+
+
+/* ========================================
+   SİLAH
+======================================== */
+
+function fireWeapon(){
+
+  if(
+    player.fireCooldown > 0
+  ){
+
+    return;
+  }
+
+
+  const rate =
+    player.rapidFire > 0
+      ? 5
+      : player.fireRate;
+
+
+  player.fireCooldown =
+    rate;
+
+
+  if(
+    player.tripleShot > 0
+  ){
+
+    shootBullet(
+      player.angle-.14
+    );
+
+    shootBullet(
+      player.angle
+    );
+
+    shootBullet(
+      player.angle+.14
+    );
+
+  }
+
+  else{
+
+    shootBullet(
+      player.angle
+    );
+  }
+
+
+  for(
+    let i=0;
+    i<4;
+    i++
+  ){
+
+    particles.push({
+
+      x:
+        player.x +
+        Math.cos(
+          player.angle
+        )*28,
+
+      y:
+        player.y +
+        Math.sin(
+          player.angle
+        )*28,
+
+      vx:
+        Math.cos(
+          player.angle
+        )*
+        rand(1,3),
+
+      vy:
+        Math.sin(
+          player.angle
+        )*
+        rand(1,3),
+
+      life:10,
+
+      size:
+        rand(2,4),
+
+      color:"#f8fafc"
+    });
+  }
+}
+
+
+function shootBullet(angle){
+
+  bullets.push({
+
+    x:
+      player.x +
+      Math.cos(angle)*28,
+
+    y:
+      player.y +
+      Math.sin(angle)*28,
+
+    vx:
+      Math.cos(angle)*
+      player.bulletSpeed,
+
+    vy:
+      Math.sin(angle)*
+      player.bulletSpeed,
+
+    radius:4,
+
+    damage:
+      player.damage,
+
+    life:85
+  });
+}
+
+
+/* ========================================
+   MERMİ UPDATE
+======================================== */
+
+function updateBullets(){
+
+  bullets.forEach(
+    bullet=>{
+
+      bullet.x +=
+        bullet.vx;
+
+      bullet.y +=
+        bullet.vy;
+
+      bullet.life--;
+    }
+  );
+
+
+  bullets =
+    bullets.filter(
+      bullet=>
+        bullet.life>0 &&
+        bullet.x>-30 &&
+        bullet.x<W+30 &&
+        bullet.y>-30 &&
+        bullet.y<H+30
+    );
+
+
+  enemyBullets.forEach(
+    bullet=>{
+
+      bullet.x +=
+        bullet.vx;
+
+      bullet.y +=
+        bullet.vy;
+
+      bullet.life--;
+
+
+      if(
+        player.invincible <= 0 &&
+        circleHit(
+          bullet,
+          player
+        )
+      ){
+
+        damagePlayer(
+          bullet.damage
+        );
+
+        bullet.life = 0;
+      }
+    }
+  );
+
+
+  enemyBullets =
+    enemyBullets.filter(
+      bullet=>
+        bullet.life>0
+    );
+}
+
+
+/* ========================================
+   ENEMY UPDATE
+======================================== */
+
+function updateEnemies(){
+
+  for(
+    let i=enemies.length-1;
+    i>=0;
+    i--
+  ){
+
+    const enemy =
+      enemies[i];
+
+
+    const angle =
+      Math.atan2(
+        player.y-enemy.y,
+        player.x-enemy.x
+      );
+
+
+    enemy.angle =
+      angle;
+
+
+    const dist =
+      distance(
+        enemy,
+        player
+      );
+
+
+    if(
+      enemy.type ===
+      "hunter"
+    ){
+
+      enemy.x +=
+        Math.cos(angle)*
+        enemy.speed;
+
+      enemy.y +=
+        Math.sin(angle)*
+        enemy.speed;
+    }
+
+
+    if(
+      enemy.type ===
+      "tank"
+    ){
+
+      enemy.x +=
+        Math.cos(angle)*
+        enemy.speed;
+
+      enemy.y +=
+        Math.sin(angle)*
+        enemy.speed;
+    }
+
+
+    if(
+      enemy.type ===
+      "gunner"
+    ){
+
+      if(dist > 280){
+
+        enemy.x +=
+          Math.cos(angle)*
+          enemy.speed;
+
+        enemy.y +=
+          Math.sin(angle)*
+          enemy.speed;
+
+      }
+
+      else if(dist < 180){
+
+        enemy.x -=
+          Math.cos(angle)*
+          enemy.speed;
+
+        enemy.y -=
+          Math.sin(angle)*
+          enemy.speed;
+      }
+
+
+      enemy.shootCooldown--;
+
+
+      if(
+        enemy.shootCooldown <= 0
+      ){
+
+        enemyShoot(
+          enemy,
+          angle,
+          6,
+          10
+        );
+
+        enemy.shootCooldown =
+          rand(
+            65,
+            100
+          );
+      }
+    }
+
+
+    if(
+      enemy.type ===
+      "boss"
+    ){
+
+      if(dist > 220){
+
+        enemy.x +=
+          Math.cos(angle)*
+          enemy.speed;
+
+        enemy.y +=
+          Math.sin(angle)*
+          enemy.speed;
+      }
+
+
+      enemy.shootCooldown--;
+
+      enemy.burstCooldown--;
+
+
+      if(
+        enemy.shootCooldown <= 0
+      ){
+
+        enemyShoot(
+          enemy,
+          angle,
+          7,
+          15
+        );
+
+        enemy.shootCooldown =
+          25;
+      }
+
+
+      if(
+        enemy.burstCooldown <= 0
+      ){
+
+        bossBurst(
+          enemy
+        );
+
+        enemy.burstCooldown =
+          140;
+      }
+    }
+
+
+    if(enemy.flash > 0){
+
+      enemy.flash--;
+    }
+
+
+    if(
+      player.invincible <= 0 &&
+      circleHit(
+        player,
+        enemy
+      )
+    ){
+
+      damagePlayer(
+        enemy.damage
+      );
+
+
+      const pushAngle =
+        Math.atan2(
+          player.y-enemy.y,
+          player.x-enemy.x
+        );
+
+
+      player.vx =
+        Math.cos(
+          pushAngle
+        )*7;
+
+      player.vy =
+        Math.sin(
+          pushAngle
+        )*7;
+    }
+  }
+}
+
+
+/* ========================================
+   ENEMY FIRE
+======================================== */
+
+function enemyShoot(
+  enemy,
+  angle,
+  speed,
+  damage
+){
+
+  enemyBullets.push({
+
+    x:
+      enemy.x +
+      Math.cos(angle)*
+      enemy.radius,
+
+    y:
+      enemy.y +
+      Math.sin(angle)*
+      enemy.radius,
+
+    vx:
+      Math.cos(angle)*
+      speed,
+
+    vy:
+      Math.sin(angle)*
+      speed,
+
+    radius:5,
+
+    damage,
+
+    life:140
+  });
+}
+
+
+function bossBurst(enemy){
+
+  for(
+    let i=0;
+    i<14;
+    i++
+  ){
+
+    const angle =
+      (
+        Math.PI*2/14
+      )*i;
+
+
+    enemyBullets.push({
+
+      x:enemy.x,
+      y:enemy.y,
+
+      vx:
+        Math.cos(angle)*5,
+
+      vy:
+        Math.sin(angle)*5,
+
+      radius:6,
+
+      damage:13,
+
+      life:170
+    });
+  }
+
+
+  createShockwave(
+    enemy.x,
+    enemy.y,
+    "#a855f7"
+  );
+}
+
+
+/* ========================================
+   BULLET -> ENEMY
+======================================== */
+
+function checkBulletHits(){
+
+  for(
+    let b=bullets.length-1;
+    b>=0;
+    b--
+  ){
+
+    const bullet =
+      bullets[b];
+
+
+    for(
+      let e=enemies.length-1;
+      e>=0;
+      e--
+    ){
+
+      const enemy =
+        enemies[e];
+
+
+      if(
+        circleHit(
+          bullet,
+          enemy
+        )
+      ){
+
+        enemy.hp -=
+          bullet.damage;
+
+        enemy.flash = 4;
+
+        bullet.life = 0;
+
+
+        createHitParticles(
+          bullet.x,
+          bullet.y,
+          enemy.type === "boss"
+            ? "#c084fc"
+            : "#f87171"
+        );
+
+
+        if(
+          enemy.hp <= 0
+        ){
+
+          killEnemy(
+            enemy,
+            e
+          );
+        }
+
+
+        break;
+      }
+    }
+  }
+}
+
+
+/* ========================================
+   ENEMY ÖLDÜR
+======================================== */
+
+function killEnemy(
+  enemy,
+  index
+){
+
+  kills++;
+
+  combo =
+    Math.min(
+      8,
+      combo+1
+    );
+
+  comboTimer =
+    180;
+
+
+  const value =
+    enemy.type === "boss"
+      ? 2500
+      : enemy.type === "tank"
+        ? 350
+        : enemy.type === "gunner"
+          ? 250
+          : 150;
+
+
+  score +=
+    value *
+    combo;
+
+
+  floatingTexts.push({
+
+    x:enemy.x,
+    y:enemy.y,
+
+    text:
+      "+" +
+      value*combo,
+
+    life:60,
+
+    color:"#fde68a"
+  });
+
+
+  createExplosion(
+    enemy.x,
+    enemy.y,
+    enemy.radius,
+    enemy.type
+  );
+
+
+  maybeDropPickup(
+    enemy.x,
+    enemy.y
+  );
+
+
+  if(
+    enemy.type === "boss"
+  ){
+
+    document
+      .getElementById(
+        "bossBarWrap"
+      )
+      .style.display =
+        "none";
+  }
+
+
+  enemies.splice(
+    index,
+    1
+  );
+
+
+  updateHUD();
+}
+
+
+/* ========================================
+   PLAYER DAMAGE
+======================================== */
+
+function damagePlayer(amount){
+
+  if(
+    player.invincible > 0
+  ){
+
+    return;
+  }
+
+
+  if(
+    player.shield > 0
+  ){
+
+    const absorbed =
+      Math.min(
+        player.shield,
+        amount
+      );
+
+    player.shield -=
+      absorbed;
+
+    amount -=
+      absorbed;
+  }
+
+
+  if(amount > 0){
+
+    player.hp -=
+      amount;
+  }
+
+
+  player.invincible = 38;
+
+  screenShake = 12;
+
+
+  createShockwave(
+    player.x,
+    player.y,
+    "#ef4444"
+  );
+
+
+  updateHUD();
+
+
+  if(
+    player.hp <= 0
+  ){
+
+    gameOver();
+  }
+}
+
+
+/* ========================================
+   PICKUPS
+======================================== */
+
+function maybeDropPickup(
+  x,
+  y
+){
+
+  if(
+    Math.random() > .28
+  ){
+
+    return;
+  }
+
+
+  const types = [
+    "health",
+    "shield",
+    "rapid",
+    "triple"
+  ];
+
+
+  const type =
+    types[
+      Math.floor(
+        Math.random()*
+        types.length
+      )
+    ];
+
+
+  pickups.push({
+
+    x,
+    y,
+
+    type,
+
+    radius:14,
+
+    life:600,
+
+    pulse:0
+  });
+}
+
+
+function updatePickups(){
+
+  for(
+    let i=pickups.length-1;
+    i>=0;
+    i--
+  ){
+
+    const pickup =
+      pickups[i];
+
+
+    pickup.life--;
+
+    pickup.pulse +=
+      .08;
+
+
+    if(
+      circleHit(
+        pickup,
+        player
+      )
+    ){
+
+      applyPickup(
+        pickup.type
+      );
+
+      createShockwave(
+        pickup.x,
+        pickup.y,
+        "#fde68a"
+      );
+
+      pickups.splice(
+        i,
+        1
+      );
+
+      continue;
+    }
+
+
+    if(
+      pickup.life <= 0
+    ){
+
+      pickups.splice(
+        i,
+        1
+      );
+    }
+  }
+}
+
+
+function applyPickup(type){
+
+  if(type === "health"){
+
+    player.hp =
+      Math.min(
+        player.maxHp,
+        player.hp+35
+      );
+
+    showPickup(
+      "❤️ ARMOR +35"
+    );
+  }
+
+
+  if(type === "shield"){
+
+    player.shield =
+      Math.min(
+        player.maxShield,
+        player.shield+60
+      );
+
+    showPickup(
+      "🛡️ SHIELD +60"
+    );
+  }
+
+
+  if(type === "rapid"){
+
+    player.rapidFire =
+      600;
+
+    showPickup(
+      "⚡ RAPID FIRE"
+    );
+  }
+
+
+  if(type === "triple"){
+
+    player.tripleShot =
+      600;
+
+    showPickup(
+      "🔱 TRIPLE SHOT"
+    );
+  }
+
+
+  updateHUD();
+}
+
+
+/* ========================================
+   COMBO
+======================================== */
+
+function updateCombo(){
+
+  if(
+    comboTimer > 0
+  ){
+
+    comboTimer--;
+
+  }
+
+  else{
+
+    combo = 1;
+  }
+
+
+  const comboText =
+    document.getElementById(
+      "comboText"
+    );
+
+
+  if(combo > 1){
+
+    comboText.textContent =
+      "COMBO x" +
+      combo;
+
+    comboText.style.opacity =
+      "1";
+
+  }
+
+  else{
+
+    comboText.style.opacity =
+      "0";
+  }
+}
+
+
+/* ========================================
+   WAVE KONTROL
+======================================== */
+
+function checkWave(){
+
+  if(
+    enemies.length === 0 &&
+    running
+  ){
+
+    if(
+      waveDelay <= 0
+    ){
+
+      waveDelay = 120;
+
+    }
+
+    else{
+
+      waveDelay--;
+
+
+      if(
+        waveDelay === 1
+      ){
+
+        wave++;
+
+        spawnWave();
+
+        waveDelay = 0;
+
+        updateHUD();
+      }
+    }
+  }
+}
+
+
+/* ========================================
+   PARTICLES
+======================================== */
+
+function createHitParticles(
+  x,
+  y,
+  color
+){
+
+  for(
+    let i=0;
+    i<7;
+    i++
+  ){
+
+    particles.push({
+
+      x,
+      y,
+
+      vx:
+        rand(-3,3),
+
+      vy:
+        rand(-3,3),
+
+      life:
+        rand(10,24),
+
+      size:
+        rand(2,5),
+
+      color
+    });
+  }
+}
+
+
+function createExplosion(
+  x,
+  y,
+  size,
+  type
+){
+
+  screenShake =
+    Math.max(
+      screenShake,
+      type === "boss"
+        ? 22
+        : 8
+    );
+
+
+  const count =
+    type === "boss"
+      ? 90
+      : Math.floor(
+          16+
+          size
+        );
+
+
+  for(
+    let i=0;
+    i<count;
+    i++
+  ){
+
+    const angle =
+      Math.random()*
+      Math.PI*2;
+
+    const speed =
+      rand(
+        1,
+        type === "boss"
+          ? 9
+          : 5
+      );
+
+
+    particles.push({
+
+      x,
+      y,
+
+      vx:
+        Math.cos(angle)*
+        speed,
+
+      vy:
+        Math.sin(angle)*
+        speed,
+
+      life:
+        rand(20,60),
+
+      size:
+        rand(2,7),
+
+      color:
+        Math.random()>.5
+          ? "#fb7185"
+          : "#f97316"
+    });
+  }
+
+
+  createShockwave(
+    x,
+    y,
+    type === "boss"
+      ? "#c084fc"
+      : "#fb7185"
+  );
+}
+
+
+function updateParticles(){
+
+  particles.forEach(
+    p=>{
+
+      p.x +=
+        p.vx;
+
+      p.y +=
+        p.vy;
+
+      p.vx *=
+        .97;
+
+      p.vy *=
+        .97;
+
+      p.life--;
+    }
+  );
+
+
+  particles =
+    particles.filter(
+      p=>
+        p.life>0
+    );
+}
+
+
+/* ========================================
+   SHOCKWAVE
+======================================== */
+
+function createShockwave(
+  x,
+  y,
+  color
+){
+
+  shockwaves.push({
+
+    x,
+    y,
+
+    radius:10,
+
+    life:30,
+
+    color
+  });
+}
+
+
+function updateShockwaves(){
+
+  shockwaves.forEach(
+    wave=>{
+
+      wave.radius +=
+        5;
+
+      wave.life--;
+    }
+  );
+
+
+  shockwaves =
+    shockwaves.filter(
+      wave=>
+        wave.life>0
+    );
+}
+
+
+/* ========================================
+   FLOAT TEXT
+======================================== */
+
+function updateFloatingTexts(){
+
+  floatingTexts.forEach(
+    text=>{
+
+      text.y -=
+        .7;
+
+      text.life--;
+    }
+  );
+
+
+  floatingTexts =
+    floatingTexts.filter(
+      text=>
+        text.life>0
+    );
+}
+
+
+/* ========================================
+   HUD
+======================================== */
+
+function updateHUD(){
+
+  document
+    .getElementById("wave")
+    .textContent =
+      wave;
+
+
+  document
+    .getElementById("score")
+    .textContent =
+      Math.floor(score);
+
+
+  document
+    .getElementById("kills")
+    .textContent =
+      kills;
+
+
+  document
+    .getElementById(
+      "multiplier"
+    )
+    .textContent =
+      combo;
+
+
+  document
+    .getElementById(
+      "healthBar"
+    )
+    .style.width =
+      Math.max(
+        0,
+        player.hp/
+        player.maxHp*
+        100
+      ) + "%";
+
+
+  document
+    .getElementById(
+      "shieldBar"
+    )
+    .style.width =
+      Math.max(
+        0,
+        player.shield/
+        player.maxShield*
+        100
+      ) + "%";
+
+
+  const dash =
+    document.getElementById(
+      "dashIndicator"
+    );
+
+
+  if(
+    player.dashCooldown <= 0
+  ){
+
+    dash.textContent =
+      "⚡ DASH HAZIR";
+
+    dash.style.color =
+      "#67e8f9";
+
+  }
+
+  else{
+
+    const percent =
+      Math.round(
+        (
+          1-
+          player.dashCooldown/
+          player.dashMaxCooldown
+        )*
+        100
+      );
+
+
+    dash.textContent =
+      "⚡ DASH " +
+      percent +
+      "%";
+
+    dash.style.color =
+      "#64748b";
+  }
+
+
+  const boss =
+    enemies.find(
+      enemy=>
+        enemy.type === "boss"
+    );
+
+
+  if(boss){
+
+    document
+      .getElementById(
+        "bossBar"
+      )
+      .style.width =
+        (
+          boss.hp/
+          boss.maxHp*
+          100
+        ) +
+        "%";
+  }
+}
+
+
+/* ========================================
+   MESAJLAR
+======================================== */
+
+function showWaveText(text){
+
+  const el =
+    document.getElementById(
+      "waveText"
+    );
+
+
+  el.textContent =
+    text;
+
+  el.style.opacity =
+    "1";
+
+  el.style.transform =
+    "translate(-50%,-50%) scale(1.15)";
+
+
+  setTimeout(()=>{
+
+    el.style.transition =
+      "all .5s";
+
+    el.style.opacity =
+      "0";
+
+    el.style.transform =
+      "translate(-50%,-50%) scale(.9)";
+
+  },800);
+}
+
+
+function showPickup(text){
+
+  const el =
+    document.getElementById(
+      "pickupText"
+    );
+
+
+  el.textContent =
+    text;
+
+  el.style.opacity =
+    "1";
+
+
+  setTimeout(()=>{
+
+    el.style.opacity =
+      "0";
+
+  },900);
+}
+
+
+/* ========================================
+   GAME OVER
+======================================== */
+
+function gameOver(){
+
+  running = false;
+
+
+  createExplosion(
+    player.x,
+    player.y,
+    45,
+    "boss"
+  );
+
+
+  setTimeout(()=>{
+
+    const menu =
+      document.getElementById(
+        "menu"
+      );
+
+
+    menu.innerHTML = `
+
+      <div class="panel">
+
+        <div class="logo">
+          💀
+        </div>
+
+        <h1>
+          SİSTEM ÇÖKTÜ
+        </h1>
+
+        <p>
+          Ulaştığın dalga:
+          <b>${wave}</b>
+        </p>
+
+        <p>
+          🤖 Yok edilen robot:
+          <b>${kills}</b>
+        </p>
+
+        <p>
+          ⭐ Skor:
+          <b>${Math.floor(score)}</b>
+        </p>
+
+        <button
+          onclick="startGame()"
+        >
+          🔄 YENİDEN SAVAŞ
+        </button>
+
+      </div>
+    `;
+
+
+    menu.style.display =
+      "flex";
+
+  },450);
+}
+
+
+/* ========================================
+   UPDATE
+======================================== */
+
+function update(){
+
+  if(!running){
+
+    updateParticles();
+
+    updateShockwaves();
+
+    updateFloatingTexts();
+
+    return;
+  }
+
+
+  time++;
+
+
+  updatePlayer();
+
+  updateBullets();
+
+  updateEnemies();
+
+  updatePickups();
+
+  updateParticles();
+
+  updateShockwaves();
+
+  updateFloatingTexts();
+
+  updateCombo();
+
+  checkBulletHits();
+
+  checkWave();
+
+  updateHUD();
+}
+
+
+/* ========================================
+   BACKGROUND
+======================================== */
+
+function drawBackground(){
+
+  const gradient =
+    ctx.createRadialGradient(
+      W/2,
+      H/2,
+      50,
+      W/2,
+      H/2,
+      Math.max(W,H)
+    );
+
+
+  gradient.addColorStop(
+    0,
+    "#111a2e"
+  );
+
+  gradient.addColorStop(
+    1,
+    "#040711"
+  );
+
+
+  ctx.fillStyle =
+    gradient;
+
+  ctx.fillRect(
+    0,
+    0,
+    W,
+    H
+  );
+
+
+  /* GRID */
+
+  ctx.strokeStyle =
+    "rgba(34,211,238,.07)";
+
+  ctx.lineWidth = 1;
+
+
+  const grid = 55;
+
+  const offsetX =
+    (
+      time*.15
+    )%
+    grid;
+
+  const offsetY =
+    (
+      time*.08
+    )%
+    grid;
+
+
+  for(
+    let x=-grid;
+    x<W+grid;
+    x+=grid
+  ){
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      x+offsetX,
+      0
+    );
+
+    ctx.lineTo(
+      x+offsetX,
+      H
+    );
+
+    ctx.stroke();
+  }
+
+
+  for(
+    let y=-grid;
+    y<H+grid;
+    y+=grid
+  ){
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      0,
+      y+offsetY
+    );
+
+    ctx.lineTo(
+      W,
+      y+offsetY
+    );
+
+    ctx.stroke();
+  }
+
+
+  /* ARENA ÇERÇEVESİ */
+
+  ctx.strokeStyle =
+    "rgba(56,189,248,.18)";
+
+  ctx.lineWidth = 3;
+
+  ctx.strokeRect(
+    12,
+    12,
+    W-24,
+    H-24
+  );
+}
+
+
+/* ========================================
+   PLAYER DRAW
+======================================== */
+
+function drawPlayer(){
+
+  if(
+    player.invincible > 0 &&
+    Math.floor(
+      player.invincible/4
+    )%2 === 0
+  ){
+
+    return;
+  }
+
+
+  ctx.save();
+
+  ctx.translate(
+    player.x,
+    player.y
+  );
+
+  ctx.rotate(
+    player.angle
+  );
+
+
+  ctx.shadowColor =
+    "#22d3ee";
+
+  ctx.shadowBlur =
+    18;
+
+
+  /* BODY */
+
+  ctx.fillStyle =
+    "#0f172a";
+
+  ctx.strokeStyle =
+    "#22d3ee";
+
+  ctx.lineWidth = 3;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    player.radius,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  ctx.stroke();
+
+
+  /* ARMOR PANELS */
+
+  ctx.fillStyle =
+    "#2563eb";
+
+  ctx.fillRect(
+    -12,
+    -11,
+    18,
+    22
+  );
+
+
+  /* GUN */
+
+  ctx.fillStyle =
+    "#cbd5e1";
+
+  ctx.fillRect(
+    5,
+    -5,
+    28,
+    10
+  );
+
+
+  ctx.fillStyle =
+    "#67e8f9";
+
+  ctx.fillRect(
+    28,
+    -3,
+    8,
+    6
+  );
+
+
+  /* CORE */
+
+  ctx.fillStyle =
+    "#67e8f9";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    -4,
+    0,
+    5,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+
+  ctx.shadowBlur = 0;
+
+  ctx.restore();
+}
+
+
+/* ========================================
+   ENEMY DRAW
+======================================== */
+
+function drawEnemies(){
+
+  enemies.forEach(
+    enemy=>{
+
+      ctx.save();
+
+      ctx.translate(
+        enemy.x,
+        enemy.y
+      );
+
+      ctx.rotate(
+        enemy.angle
+      );
+
+
+      let color =
+        "#ef4444";
+
+
+      if(
+        enemy.type === "gunner"
+      ){
+
+        color =
+          "#a855f7";
+      }
+
+
+      if(
+        enemy.type === "tank"
+      ){
+
+        color =
+          "#f97316";
+      }
+
+
+      if(
+        enemy.type === "boss"
+      ){
+
+        color =
+          "#d946ef";
+      }
+
+
+      if(enemy.flash > 0){
+
+        color =
+          "#ffffff";
+      }
+
+
+      ctx.shadowColor =
+        color;
+
+      ctx.shadowBlur =
+        enemy.type === "boss"
+          ? 30
+          : 12;
+
+
+      ctx.fillStyle =
+        "#111827";
+
+      ctx.strokeStyle =
+        color;
+
+      ctx.lineWidth =
+        enemy.type === "boss"
+          ? 5
+          : 3;
+
+
+      ctx.beginPath();
+
+      ctx.arc(
+        0,
+        0,
+        enemy.radius,
+        0,
+        Math.PI*2
+      );
+
+      ctx.fill();
+
+      ctx.stroke();
+
+
+      /* EYE */
+
+      ctx.fillStyle =
+        color;
+
+      ctx.fillRect(
+        4,
+        -5,
+        enemy.radius*.7,
+        10
+      );
+
+
+      /* SIDE PANELS */
+
+      if(
+        enemy.type === "tank" ||
+        enemy.type === "boss"
+      ){
+
+        ctx.fillRect(
+          -enemy.radius,
+          -enemy.radius*.7,
+          10,
+          enemy.radius*1.4
+        );
+
+        ctx.fillRect(
+          enemy.radius-10,
+          -enemy.radius*.7,
+          10,
+          enemy.radius*1.4
+        );
+      }
+
+
+      ctx.shadowBlur = 0;
+
+      ctx.restore();
+
+
+      /* HP */
+
+      if(
+        enemy.hp <
+        enemy.maxHp
+      ){
+
+        const width =
+          enemy.radius*2;
+
+
+        ctx.fillStyle =
+          "rgba(0,0,0,.6)";
+
+        ctx.fillRect(
+          enemy.x-
+          width/2,
+          enemy.y-
+          enemy.radius-
+          12,
+          width,
+          5
+        );
+
+
+        ctx.fillStyle =
+          "#ef4444";
+
+        ctx.fillRect(
+          enemy.x-
+          width/2,
+          enemy.y-
+          enemy.radius-
+          12,
+          width*
+          enemy.hp/
+          enemy.maxHp,
+          5
+        );
+      }
+    }
+  );
+}
+
+
+/* ========================================
+   BULLETS DRAW
+======================================== */
+
+function drawBullets(){
+
+  ctx.shadowBlur = 10;
+
+
+  bullets.forEach(
+    bullet=>{
+
+      ctx.shadowColor =
+        "#67e8f9";
+
+      ctx.fillStyle =
+        "#e0f2fe";
+
+
+      ctx.beginPath();
+
+      ctx.arc(
+        bullet.x,
+        bullet.y,
+        bullet.radius,
+        0,
+        Math.PI*2
+      );
+
+      ctx.fill();
+    }
+  );
+
+
+  enemyBullets.forEach(
+    bullet=>{
+
+      ctx.shadowColor =
+        "#fb7185";
+
+      ctx.fillStyle =
+        "#fb7185";
+
+
+      ctx.beginPath();
+
+      ctx.arc(
+        bullet.x,
+        bullet.y,
+        bullet.radius,
+        0,
+        Math.PI*2
+      );
+
+      ctx.fill();
+    }
+  );
+
+
+  ctx.shadowBlur = 0;
+}
+
+
+/* ========================================
+   PICKUP DRAW
+======================================== */
+
+function drawPickups(){
+
+  pickups.forEach(
+    pickup=>{
+
+      const pulse =
+        1 +
+        Math.sin(
+          pickup.pulse
+        )*.15;
+
+
+      ctx.save();
+
+      ctx.translate(
+        pickup.x,
+        pickup.y
+      );
+
+      ctx.scale(
+        pulse,
+        pulse
+      );
+
+
+      let color =
+        "#22c55e";
+
+      let symbol =
+        "+";
+
+
+      if(
+        pickup.type ===
+        "shield"
+      ){
+
+        color =
+          "#38bdf8";
+
+        symbol =
+          "S";
+      }
+
+
+      if(
+        pickup.type ===
+        "rapid"
+      ){
+
+        color =
+          "#facc15";
+
+        symbol =
+          "R";
+      }
+
+
+      if(
+        pickup.type ===
+        "triple"
+      ){
+
+        color =
+          "#c084fc";
+
+        symbol =
+          "3";
+      }
+
+
+      ctx.shadowColor =
+        color;
+
+      ctx.shadowBlur =
+        22;
+
+      ctx.fillStyle =
+        color;
+
+
+      ctx.beginPath();
+
+      ctx.arc(
+        0,
+        0,
+        14,
+        0,
+        Math.PI*2
+      );
+
+      ctx.fill();
+
+
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle =
+        "#07111f";
+
+      ctx.font =
+        "bold 14px Arial";
+
+      ctx.textAlign =
+        "center";
+
+      ctx.textBaseline =
+        "middle";
+
+      ctx.fillText(
+        symbol,
+        0,
+        1
+      );
+
+
+      ctx.restore();
+    }
+  );
+}
+
+
+/* ========================================
+   EFFECT DRAW
+======================================== */
+
+function drawEffects(){
+
+  shockwaves.forEach(
+    wave=>{
+
+      ctx.globalAlpha =
+        wave.life/30;
+
+      ctx.strokeStyle =
+        wave.color;
+
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+
+      ctx.arc(
+        wave.x,
+        wave.y,
+        wave.radius,
+        0,
+        Math.PI*2
+      );
+
+      ctx.stroke();
+    }
+  );
+
+
+  ctx.globalAlpha = 1;
+
+
+  particles.forEach(
+    particle=>{
+
+      ctx.globalAlpha =
+        Math.max(
+          0,
+          particle.life/50
+        );
+
+      ctx.fillStyle =
+        particle.color;
+
+      ctx.fillRect(
+        particle.x,
+        particle.y,
+        particle.size,
+        particle.size
+      );
+    }
+  );
+
+
+  ctx.globalAlpha = 1;
+
+
+  floatingTexts.forEach(
+    text=>{
+
+      ctx.globalAlpha =
+        text.life/60;
+
+      ctx.fillStyle =
+        text.color;
+
+      ctx.font =
+        "bold 16px Arial";
+
+      ctx.textAlign =
+        "center";
+
+      ctx.fillText(
+        text.text,
+        text.x,
+        text.y
+      );
+    }
+  );
+
+
+  ctx.globalAlpha = 1;
+}
+
+
+/* ========================================
+   CROSSHAIR
+======================================== */
+
+function drawCrosshair(){
+
+  ctx.save();
+
+  ctx.translate(
+    mouse.x,
+    mouse.y
+  );
+
+
+  ctx.strokeStyle =
+    "#67e8f9";
+
+  ctx.lineWidth = 2;
+
+
+  ctx.beginPath();
+
+  ctx.arc(
+    0,
+    0,
+    11,
+    0,
+    Math.PI*2
+  );
+
+  ctx.stroke();
+
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    -18,
+    0
+  );
+
+  ctx.lineTo(
+    -7,
+    0
+  );
+
+  ctx.moveTo(
+    18,
+    0
+  );
+
+  ctx.lineTo(
+    7,
+    0
+  );
+
+  ctx.moveTo(
+    0,
+    -18
+  );
+
+  ctx.lineTo(
+    0,
+    -7
+  );
+
+  ctx.moveTo(
+    0,
+    18
+  );
+
+  ctx.lineTo(
+    0,
+    7
+  );
+
+  ctx.stroke();
+
+
+  ctx.restore();
+}
+
+
+/* ========================================
+   DRAW
+======================================== */
+
+function draw(){
+
+  ctx.save();
+
+
+  if(screenShake > .2){
+
+    ctx.translate(
+      rand(
+        -screenShake,
+        screenShake
+      ),
+      rand(
+        -screenShake,
+        screenShake
+      )
+    );
+
+    screenShake *=
+      .87;
+  }
+
+
+  drawBackground();
+
+  drawPickups();
+
+  drawEffects();
+
+  drawBullets();
+
+  drawEnemies();
+
+  drawPlayer();
+
+
+  ctx.restore();
+
+
+  drawCrosshair();
+}
+
+
+/* ========================================
+   LOOP
+======================================== */
+
+function loop(){
+
+  update();
+
+  draw();
+
+  requestAnimationFrame(
+    loop
+  );
+}
+
+
+loop();
+
+</script>
+
+</body>
+</html>
