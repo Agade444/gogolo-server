@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Go Snake</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: #101317;
+      color: white;
+      font-family: Arial, sans-serif;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      padding: 20px;
+    }
+
+    .gameWrap {
+      width: 100%;
+      max-width: 520px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-top: 0;
+      font-size: 42px;
+    }
+
+    .topBar {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .box {
+      flex: 1;
+      background: #1d232b;
+      padding: 12px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+
+    canvas {
+      width: 100%;
+      max-width: 500px;
+      aspect-ratio: 1 / 1;
+
+      background: #171c22;
+
+      border: 4px solid #2e3742;
+      border-radius: 18px;
+
+      display: block;
+      margin: auto;
+
+      touch-action: none;
+    }
+
+    .buttons {
+      margin-top: 14px;
+    }
+
+    button {
+      border: none;
+      border-radius: 10px;
+
+      background: #2ecc71;
+      color: white;
+
+      padding: 12px 18px;
+      margin: 5px;
+
+      font-size: 15px;
+      font-weight: bold;
+
+      cursor: pointer;
+    }
+
+    button:hover {
+      opacity: .9;
+    }
+
+    .back {
+      background: #333;
+    }
+
+    .controls {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(3, 70px);
+      justify-content: center;
+      gap: 7px;
+    }
+
+    .controlButton {
+      width: 70px;
+      height: 55px;
+      padding: 0;
+      font-size: 22px;
+      background: #252c35;
+    }
+
+    .empty {
+      visibility: hidden;
+    }
+
+    #message {
+      margin-top: 12px;
+      min-height: 28px;
+      font-weight: bold;
+    }
+
+    .hint {
+      margin-top: 12px;
+      color: #aaa;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="gameWrap">
+
+    <h1>🐍 Go Snake</h1>
+
+    <div class="topBar">
+
+      <div class="box">
+        🍎 Skor:
+        <span id="score">0</span>
+      </div>
+
+      <div class="box">
+        🏆 Rekor:
+        <span id="best">0</span>
+      </div>
+
+    </div>
+
+    <canvas
+      id="game"
+      width="500"
+      height="500"
+    ></canvas>
+
+    <div id="message">
+      Başlamak için OYNA'ya bas.
+    </div>
+
+    <div class="buttons">
+
+      <button onclick="startGame()">
+        ▶ OYNA
+      </button>
+
+      <button
+        class="back"
+        onclick="window.location.href='/store.html'"
+      >
+        ← STORE
+      </button>
+
+    </div>
+
+    <div class="controls">
+
+      <button class="controlButton empty"></button>
+
+      <button
+        class="controlButton"
+        onclick="setDirection(0,-1)"
+      >
+        ⬆️
+      </button>
+
+      <button class="controlButton empty"></button>
+
+
+      <button
+        class="controlButton"
+        onclick="setDirection(-1,0)"
+      >
+        ⬅️
+      </button>
+
+      <button
+        class="controlButton"
+        onclick="setDirection(0,1)"
+      >
+        ⬇️
+      </button>
+
+      <button
+        class="controlButton"
+        onclick="setDirection(1,0)"
+      >
+        ➡️
+      </button>
+
+    </div>
+
+    <div class="hint">
+      Bilgisayarda yön tuşları veya WASD ile oynayabilirsin.<br>
+      Telefonda butonlara bas veya ekran üzerinde kaydır.
+    </div>
+
+  </div>
+
+
+<script>
+
+const canvas =
+  document.getElementById("game");
+
+const ctx =
+  canvas.getContext("2d");
+
+
+const CELL = 20;
+
+const COLS =
+  canvas.width / CELL;
+
+const ROWS =
+  canvas.height / CELL;
+
+
+let snake = [];
+
+let food = {
+  x: 10,
+  y: 10
+};
+
+let dx = 1;
+let dy = 0;
+
+let nextDx = 1;
+let nextDy = 0;
+
+let score = 0;
+
+let running = false;
+
+let gameTimer = null;
+
+let speed = 110;
+
+
+const scoreElement =
+  document.getElementById("score");
+
+const bestElement =
+  document.getElementById("best");
+
+const messageElement =
+  document.getElementById("message");
+
+
+let bestScore =
+  Number(
+    localStorage.getItem(
+      "goSnakeBest"
+    ) || 0
+  );
+
+
+bestElement.textContent =
+  bestScore;
+
+
+/* ==============================
+   YENİ OYUN
+============================== */
+
+function startGame() {
+
+  clearInterval(
+    gameTimer
+  );
+
+
+  snake = [
+    { x: 12, y: 12 },
+    { x: 11, y: 12 },
+    { x: 10, y: 12 }
+  ];
+
+
+  dx = 1;
+  dy = 0;
+
+  nextDx = 1;
+  nextDy = 0;
+
+
+  score = 0;
+
+  speed = 110;
+
+  running = true;
+
+
+  scoreElement.textContent =
+    score;
+
+
+  messageElement.textContent =
+    "Hadi bakalım 😎";
+
+
+  placeFood();
+
+
+  draw();
+
+
+  gameTimer =
+    setInterval(
+      gameLoop,
+      speed
+    );
+}
+
+
+/* ==============================
+   ANA LOOP
+============================== */
+
+function gameLoop() {
+
+  if (!running) {
+    return;
+  }
+
+
+  dx = nextDx;
+  dy = nextDy;
+
+
+  const head = {
+
+    x:
+      snake[0].x +
+      dx,
+
+    y:
+      snake[0].y +
+      dy
+
+  };
+
+
+  /* DUVAR */
+
+  if (
+    head.x < 0 ||
+    head.x >= COLS ||
+    head.y < 0 ||
+    head.y >= ROWS
+  ) {
+
+    gameOver();
+
+    return;
+  }
+
+
+  /* KENDİNE ÇARPMA */
+
+  if (
+    snake.some(
+      part =>
+        part.x === head.x &&
+        part.y === head.y
+    )
+  ) {
+
+    gameOver();
+
+    return;
+  }
+
+
+  snake.unshift(
+    head
+  );
+
+
+  /* YEM */
+
+  if (
+    head.x === food.x &&
+    head.y === food.y
+  ) {
+
+    score++;
+
+    scoreElement.textContent =
+      score;
+
+
+    if (
+      score > bestScore
+    ) {
+
+      bestScore =
+        score;
+
+      bestElement.textContent =
+        bestScore;
+
+      localStorage.setItem(
+        "goSnakeBest",
+        bestScore
+      );
+    }
+
+
+    placeFood();
+
+
+    /* HIZLANDIR */
+
+    if (
+      score % 5 === 0 &&
+      speed > 55
+    ) {
+
+      speed -= 8;
+
+      clearInterval(
+        gameTimer
+      );
+
+      gameTimer =
+        setInterval(
+          gameLoop,
+          speed
+        );
+    }
+
+  }
+
+  else {
+
+    snake.pop();
+  }
+
+
+  draw();
+}
+
+
+/* ==============================
+   YEM OLUŞTUR
+============================== */
+
+function placeFood() {
+
+  let valid = false;
+
+
+  while (!valid) {
+
+    food = {
+
+      x:
+        Math.floor(
+          Math.random() *
+          COLS
+        ),
+
+      y:
+        Math.floor(
+          Math.random() *
+          ROWS
+        )
+
+    };
+
+
+    valid =
+      !snake.some(
+        part =>
+          part.x === food.x &&
+          part.y === food.y
+      );
+  }
+}
+
+
+/* ==============================
+   ÇİZ
+============================== */
+
+function draw() {
+
+  ctx.clearRect(
+    0,
+    0,
+    canvas.width,
+    canvas.height
+  );
+
+
+  /* IZGARA */
+
+  ctx.strokeStyle =
+    "#1d252e";
+
+  ctx.lineWidth = 1;
+
+
+  for (
+    let x = 0;
+    x <= canvas.width;
+    x += CELL
+  ) {
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      x,
+      0
+    );
+
+    ctx.lineTo(
+      x,
+      canvas.height
+    );
+
+    ctx.stroke();
+  }
+
+
+  for (
+    let y = 0;
+    y <= canvas.height;
+    y += CELL
+  ) {
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      0,
+      y
+    );
+
+    ctx.lineTo(
+      canvas.width,
+      y
+    );
+
+    ctx.stroke();
+  }
+
+
+  /* YEM */
+
+  ctx.fillStyle =
+    "#ff4d4d";
+
+  ctx.beginPath();
+
+  ctx.arc(
+    food.x * CELL +
+    CELL / 2,
+
+    food.y * CELL +
+    CELL / 2,
+
+    CELL / 2 -
+    2,
+
+    0,
+    Math.PI * 2
+  );
+
+  ctx.fill();
+
+
+  /* YILAN */
+
+  snake.forEach(
+    (part, index) => {
+
+      ctx.fillStyle =
+        index === 0
+          ? "#7dff90"
+          : "#2ecc71";
+
+
+      ctx.fillRect(
+
+        part.x * CELL + 2,
+
+        part.y * CELL + 2,
+
+        CELL - 4,
+
+        CELL - 4
+
+      );
+    }
+  );
+
+
+  /* KAFA GÖZLERİ */
+
+  if (
+    snake.length > 0
+  ) {
+
+    const head =
+      snake[0];
+
+    ctx.fillStyle =
+      "#111";
+
+
+    ctx.fillRect(
+
+      head.x * CELL + 5,
+
+      head.y * CELL + 6,
+
+      3,
+      3
+
+    );
+
+
+    ctx.fillRect(
+
+      head.x * CELL + 12,
+
+      head.y * CELL + 6,
+
+      3,
+      3
+
+    );
+  }
+}
+
+
+/* ==============================
+   YÖN
+============================== */
+
+function setDirection(
+  newDx,
+  newDy
+) {
+
+  if (!running) {
+    return;
+  }
+
+
+  /* TAM TERS YÖNE DÖNEMEZ */
+
+  if (
+    newDx === -dx &&
+    newDy === -dy
+  ) {
+
+    return;
+  }
+
+
+  nextDx =
+    newDx;
+
+  nextDy =
+    newDy;
+}
+
+
+/* ==============================
+   OYUN BİTTİ
+============================== */
+
+function gameOver() {
+
+  running = false;
+
+
+  clearInterval(
+    gameTimer
+  );
+
+
+  messageElement.innerHTML =
+
+    "💀 Oyun bitti! Skorun: <b>" +
+
+    score +
+
+    "</b> — yeniden oyna!";
+
+}
+
+
+/* ==============================
+   KLAVYE
+============================== */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    const key =
+      event.key
+        .toLowerCase();
+
+
+    if (
+      event.key === "ArrowUp" ||
+      key === "w"
+    ) {
+
+      event.preventDefault();
+
+      setDirection(
+        0,
+        -1
+      );
+    }
+
+
+    if (
+      event.key === "ArrowDown" ||
+      key === "s"
+    ) {
+
+      event.preventDefault();
+
+      setDirection(
+        0,
+        1
+      );
+    }
+
+
+    if (
+      event.key === "ArrowLeft" ||
+      key === "a"
+    ) {
+
+      event.preventDefault();
+
+      setDirection(
+        -1,
+        0
+      );
+    }
+
+
+    if (
+      event.key === "ArrowRight" ||
+      key === "d"
+    ) {
+
+      event.preventDefault();
+
+      setDirection(
+        1,
+        0
+      );
+    }
+
+  }
+);
+
+
+/* ==============================
+   TELEFON SWIPE
+============================== */
+
+let startX = 0;
+let startY = 0;
+
+
+canvas.addEventListener(
+  "touchstart",
+  event => {
+
+    startX =
+      event.touches[0]
+        .clientX;
+
+    startY =
+      event.touches[0]
+        .clientY;
+
+  },
+  {
+    passive: true
+  }
+);
+
+
+canvas.addEventListener(
+  "touchend",
+  event => {
+
+    const endX =
+      event.changedTouches[0]
+        .clientX;
+
+    const endY =
+      event.changedTouches[0]
+        .clientY;
+
+
+    const diffX =
+      endX -
+      startX;
+
+    const diffY =
+      endY -
+      startY;
+
+
+    if (
+      Math.max(
+        Math.abs(diffX),
+        Math.abs(diffY)
+      ) < 25
+    ) {
+
+      return;
+    }
+
+
+    if (
+      Math.abs(diffX) >
+      Math.abs(diffY)
+    ) {
+
+      setDirection(
+        diffX > 0 ? 1 : -1,
+        0
+      );
+
+    }
+
+    else {
+
+      setDirection(
+        0,
+        diffY > 0 ? 1 : -1
+      );
+    }
+
+  },
+  {
+    passive: true
+  }
+);
+
+
+/* İLK GÖRÜNÜM */
+
+snake = [
+  { x: 12, y: 12 },
+  { x: 11, y: 12 },
+  { x: 10, y: 12 }
+];
+
+placeFood();
+
+draw();
+
+</script>
+
+</body>
+</html>
