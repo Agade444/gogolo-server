@@ -371,6 +371,8 @@ function getLoggedInUser(req) {
 // API İÇİN GİRİŞ KONTROLÜ
 // =====================================================
 
+  user.goCoins -=
+    s
 function requireApiLogin(
   req,
   res
@@ -378,7 +380,6 @@ function requireApiLogin(
 
   const user =
     getLoggedInUser(req);
-
 
   if (!user) {
 
@@ -392,10 +393,164 @@ function requireApiLogin(
     return null;
   }
 
-
   return user;
 }
 
+
+// =====================================================
+// GO COIN API
+// =====================================================
+
+
+// BAKİYEYİ GETİR
+app.get("/api/coins", (req, res) => {
+
+  const user =
+    requireApiLogin(req, res);
+
+  if (!user) {
+    return;
+  }
+
+  if (
+    typeof user.goCoins !== "number" ||
+    !Number.isFinite(user.goCoins)
+  ) {
+    user.goCoins = 0;
+  }
+
+  res.json({
+    ok: true,
+    goCoins: user.goCoins
+  });
+
+});
+
+
+// COIN EKLE
+app.post("/api/coins/add", (req, res) => {
+
+  const user =
+    requireApiLogin(req, res);
+
+  if (!user) {
+    return;
+  }
+
+  const amount =
+    Number(req.body.amount);
+
+  const reason =
+    String(
+      req.body.reason || "Ödül"
+    ).trim();
+
+  if (
+    !Number.isFinite(amount) ||
+    amount <= 0 ||
+    amount > 1000
+  ) {
+
+    return res.status(400).json({
+      ok: false,
+      error: "Geçersiz Go Coin miktarı."
+    });
+  }
+
+  const addAmount =
+    Math.floor(amount);
+
+  user.goCoins +=
+    addAmount;
+
+  if (!Array.isArray(user.coinHistory)) {
+    user.coinHistory = [];
+  }
+
+  user.coinHistory.push({
+    id: crypto.randomUUID(),
+    type: "earn",
+    amount: addAmount,
+    reason,
+    createdAt: new Date().toISOString()
+  });
+
+  saveUsers();
+
+  res.json({
+    ok: true,
+    goCoins: user.goCoins
+  });
+
+});
+
+
+// COIN HARCA
+app.post("/api/coins/spend", (req, res) => {
+
+  const user =
+    requireApiLogin(req, res);
+
+  if (!user) {
+    return;
+  }
+
+  const amount =
+    Number(req.body.amount);
+
+  const reason =
+    String(
+      req.body.reason || "Harcama"
+    ).trim();
+
+  if (
+    !Number.isFinite(amount) ||
+    amount <= 0
+  ) {
+
+    return res.status(400).json({
+      ok: false,
+      error: "Geçersiz Go Coin miktarı."
+    });
+  }
+
+  const spendAmount =
+    Math.floor(amount);
+
+  if (
+    user.goCoins <
+    spendAmount
+  ) {
+
+    return res.status(400).json({
+      ok: false,
+      error: "Yeterli Go Coin yok."
+    });
+  }
+
+  user.goCoins -=
+    spendAmount;
+
+  if (!Array.isArray(user.coinHistory)) {
+    user.coinHistory = [];
+  }
+
+  user.coinHistory.push({
+    id: crypto.randomUUID(),
+    type: "spend",
+    amount: spendAmount,
+    reason,
+    createdAt: new Date().toISOString()
+  });
+
+  saveUsers();
+
+  res.json({
+    ok: true,
+    goCoins: user.goCoins
+  });
+
+});
 
 // =====================================================
 // MAIL ORTAK SAYFA
