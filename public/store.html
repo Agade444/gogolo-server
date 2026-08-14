@@ -230,7 +230,6 @@
     }
 
     @media (max-width: 600px) {
-
       header {
         padding: 0 14px;
       }
@@ -283,7 +282,6 @@
 
 
 <section class="hero">
-
   <h1>
     Go Go Lo Store
   </h1>
@@ -291,18 +289,15 @@
   <p>
     Oyunlarını keşfet ve Go Go Lo içinde oyna.
   </p>
-
 </section>
 
 
 <div class="searchArea">
-
   <input
     id="gameSearch"
     placeholder="Store'da oyun ara..."
     oninput="filterGames()"
   >
-
 </div>
 
 
@@ -310,49 +305,47 @@
 
 
   <!-- ==========================
-       2048
+       ROBOT ARENA
   =========================== -->
 
   <div
     class="gameCard"
-    data-name="2048 bulmaca sayı"
+    data-name="robot arena robot savaş aksiyon"
   >
 
     <div class="cover">
-      🔢
+      🤖
     </div>
 
     <div class="gameInfo">
 
       <h2>
-        2048
+        Robot Arena
       </h2>
 
       <p>
-        Sayıları birleştir ve 2048'e ulaş.
+        Robot ordularına karşı savaş,
+        güçlendirmeleri topla ve dalgaları geç.
       </p>
 
       <div class="tags">
-
         <span class="tag">
-          Bulmaca
+          Aksiyon
         </span>
 
         <span class="tag">
-          Tek Oyuncu
+          Arena
         </span>
-
       </div>
 
       <button
-        class="playButton soon"
-        disabled
+        class="playButton"
+        onclick="openGame('/games/robot-arena.html', '🤖 Robot Arena')"
       >
-        YAKINDA
+        ▶ OYNA
       </button>
 
     </div>
-
   </div>
 
 
@@ -380,7 +373,6 @@
       </p>
 
       <div class="tags">
-
         <span class="tag">
           Arcade
         </span>
@@ -388,7 +380,6 @@
         <span class="tag">
           Klasik
         </span>
-
       </div>
 
       <button
@@ -399,7 +390,6 @@
       </button>
 
     </div>
-
   </div>
 
 
@@ -427,7 +417,6 @@
       </p>
 
       <div class="tags">
-
         <span class="tag">
           Uzay
         </span>
@@ -435,7 +424,6 @@
         <span class="tag">
           Arcade
         </span>
-
       </div>
 
       <button
@@ -446,7 +434,6 @@
       </button>
 
     </div>
-
   </div>
 
 
@@ -474,7 +461,6 @@
       </p>
 
       <div class="tags">
-
         <span class="tag">
           Bulmaca
         </span>
@@ -482,7 +468,6 @@
         <span class="tag">
           Hız
         </span>
-
       </div>
 
       <button
@@ -493,7 +478,6 @@
       </button>
 
     </div>
-
   </div>
 
 
@@ -517,11 +501,11 @@
       </h2>
 
       <p>
-        Trafiğin arasından sıyrıl, coinleri topla ve rekorunu kır.
+        Trafiğin arasından sıyrıl,
+        coinleri topla ve rekorunu kır.
       </p>
 
       <div class="tags">
-
         <span class="tag">
           Yarış
         </span>
@@ -529,7 +513,6 @@
         <span class="tag">
           Hız
         </span>
-
       </div>
 
       <button
@@ -540,7 +523,6 @@
       </button>
 
     </div>
-
   </div>
 
 
@@ -568,7 +550,6 @@
       </p>
 
       <div class="tags">
-
         <span class="tag">
           Korku
         </span>
@@ -576,7 +557,6 @@
         <span class="tag">
           Macera
         </span>
-
       </div>
 
       <button
@@ -587,9 +567,7 @@
       </button>
 
     </div>
-
   </div>
-
 
 </div>
 
@@ -616,7 +594,6 @@
       </button>
 
     </div>
-
 
     <iframe
       id="gameFrame"
@@ -649,12 +626,10 @@ function filterGames() {
       .toLowerCase()
       .trim();
 
-
   const cards =
     document.querySelectorAll(
       ".gameCard"
     );
-
 
   cards.forEach(card => {
 
@@ -662,14 +637,12 @@ function filterGames() {
       card.dataset.name
         .toLowerCase();
 
-
     card.style.display =
       name.includes(search)
         ? "block"
         : "none";
 
   });
-
 }
 
 
@@ -697,7 +670,6 @@ function openGame(
       "gameTitle"
     );
 
-
   titleElement.textContent =
     title;
 
@@ -709,7 +681,6 @@ function openGame(
 
   document.body.style.overflow =
     "hidden";
-
 }
 
 
@@ -729,13 +700,6 @@ function closeGame() {
       "gameFrame"
     );
 
-
-  /*
-    iframe'i boşaltıyoruz.
-    Böylece oyun arka planda
-    çalışmaya devam etmiyor.
-  */
-
   frame.src =
     "";
 
@@ -744,7 +708,6 @@ function closeGame() {
 
   document.body.style.overflow =
     "";
-
 }
 
 
@@ -756,7 +719,7 @@ document.addEventListener(
   "keydown",
   event => {
 
-    if(
+    if (
       event.key === "Escape" &&
       document
         .getElementById(
